@@ -79,7 +79,7 @@ fn get_index_on_side(side: usize, index: usize) -> Option<usize> {
         // get index above
         0 => if index < SIDE_LENGTH { None } else { Some(index - SIDE_LENGTH) },
         // get index leftward
-        3 => if index % SIDE_LENGTH == 0 { None } else { Some(index + SIDE_LENGTH) },
+        3 => if index % SIDE_LENGTH == 0 { None } else { Some(index - SIDE_LENGTH) },
         _ => panic!("Trippin"),
     }
 }
@@ -88,6 +88,10 @@ fn space_on_side_of_index_is_inside(side: usize, index: usize) -> bool {
     match side {
         // get index above
         0 => if index < SIDE_LENGTH { false } else { true },
+        // get index rightward
+        1 => if index - 1 % SIDE_LENGTH == 0 { false } else { true },
+        // get index downward
+        2 => if index >= SIDE_LENGTH * (SIDE_LENGTH - 1) { false } else { true },
         // get index leftward
         3 => if index % SIDE_LENGTH == 0 { false } else { true },
         _ => panic!("Trippin"),
@@ -105,18 +109,20 @@ fn set_tile<'a>(index: usize, output: &mut Vec<&'a Tile>, tiles: &'a Vec<Tile>) 
     // no neighbor => use function to determine space type
     // then push the tile
     let now_index = output.len();
-    let is_inside = |side: usize| -> bool {
-        if space_on_side_of_index_is_inside(side, now_index) {
-            true
-        } else {
-            false
-        }
+    let side_is_inside = |side: usize| -> bool {
+        space_on_side_of_index_is_inside(side, now_index)
+    };
+    let is_set = |side: usize| -> bool {
+        space_on_side_of_index_is_inside(side, now_index)
+        && output.get(get_index_on_side(side, now_index).unwrap()).unwrap().char != ' '
     };
     let possibilities: &Vec<&Tile> = &tiles.iter().filter(|t|
-        (is_inside(0) && t.constraints.up == output[get_index_on_side(0, now_index).unwrap()].constraints.up || t.constraints.up == false)
-    && (is_inside(3) && t.constraints.left == output[get_index_on_side(3, now_index).unwrap()].constraints.left || t.constraints.left == false) 
+        ((!side_is_inside(0) && t.constraints.up == false) || side_is_inside(0) && t.constraints.up == output[get_index_on_side(0, now_index).unwrap()].constraints.down)
+        // && (side_is_inside(1) || t.constraints.right == false)
+        // && (side_is_inside(2) || t.constraints.down == false)
+        && ((!side_is_inside(3) && t.constraints.left == false) || side_is_inside(3) && t.constraints.left == output[get_index_on_side(3, now_index).unwrap()].constraints.right) 
     )
-    .collect();
+        .collect();
     let mut rng = thread_rng();
     let tile_ref = *possibilities.get(rng.gen_range(0..possibilities.len())).unwrap();
     *output.get_mut(index).unwrap() = tile_ref;
@@ -125,13 +131,17 @@ fn set_tile<'a>(index: usize, output: &mut Vec<&'a Tile>, tiles: &'a Vec<Tile>) 
 fn main() {
     let tiles: Vec<Tile> = vec![
         Tile::new(' ', false, false, false, false),
-        Tile::new('─', false, true, false, true),
-        Tile::new('│', true, false, true, false),
         Tile::new('╭', false, true, true, false),
         Tile::new('╮', false, false, true, true),
         Tile::new('╰', true, true, false, false),
         Tile::new('╯', true, false, false, true),
+        Tile::new('─', false, true, false, true),
+        Tile::new('│', true, false, true, false),
         Tile::new('├', true, true, true, false),
+        Tile::new('┤', true, false, true, true),
+        Tile::new('┬', false, true, true, true),
+        Tile::new('┼', true, true, true, true),
+        Tile::new('┴', true, true, false, true),
     ];
 
     let num_elements = SIDE_LENGTH * SIDE_LENGTH;
