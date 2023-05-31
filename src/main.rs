@@ -2,6 +2,7 @@ use rand::{Rng, thread_rng};
 
 const SIDE_LENGTH: usize = 3;
 
+// "do lines continue in [direction]?"
 #[derive(Copy, Clone, Debug)]
 struct Constraint {
     up: bool,
@@ -73,10 +74,52 @@ impl Grid {
     }
 }
 
+fn get_index_on_side(side: usize, index: usize) -> Option<usize> {
+    match side {
+        // get index above
+        0 => if index < SIDE_LENGTH { None } else { Some(index - SIDE_LENGTH) },
+        // get index leftward
+        3 => if index % SIDE_LENGTH == 0 { None } else { Some(index + SIDE_LENGTH) },
+        _ => panic!("Trippin"),
+    }
+}
+
+fn space_on_side_of_index_is_inside(side: usize, index: usize) -> bool {
+    match side {
+        // get index above
+        0 => if index < SIDE_LENGTH { false } else { true },
+        // get index leftward
+        3 => if index % SIDE_LENGTH == 0 { false } else { true },
+        _ => panic!("Trippin"),
+    }
+}
+
 fn get_random_tile(tiles: &Vec<Tile>) -> &Tile {
     let mut rng = thread_rng();
     let possibilities: &Vec<&Tile> = &tiles.iter().filter(|t| !t.constraints.left && !t.constraints.up).collect();
     *possibilities.get(rng.gen_range(0..possibilities.len())).unwrap()
+}
+
+fn set_tile<'a>(index: usize, output: &mut Vec<&'a Tile>, tiles: &'a Vec<Tile>) {
+    // generate possibilities according to neighboring tiles,
+    // no neighbor => use function to determine space type
+    // then push the tile
+    let now_index = output.len();
+    let is_inside = |side: usize| -> bool {
+        if space_on_side_of_index_is_inside(side, now_index) {
+            true
+        } else {
+            false
+        }
+    };
+    let possibilities: &Vec<&Tile> = &tiles.iter().filter(|t|
+        (is_inside(0) && t.constraints.up == output[get_index_on_side(0, now_index).unwrap()].constraints.up || t.constraints.up == false)
+    && (is_inside(3) && t.constraints.left == output[get_index_on_side(3, now_index).unwrap()].constraints.left || t.constraints.left == false) 
+    )
+    .collect();
+    let mut rng = thread_rng();
+    let tile_ref = *possibilities.get(rng.gen_range(0..possibilities.len())).unwrap();
+    *output.get_mut(index).unwrap() = tile_ref;
 }
 
 fn main() {
@@ -91,16 +134,17 @@ fn main() {
         Tile::new('├', true, true, true, false),
     ];
 
-    let mut output: Vec<&Tile> = Vec::new();
+    let num_elements = SIDE_LENGTH * SIDE_LENGTH;
 
-    output.push(get_random_tile(&tiles));
+    let mut output: Vec<&Tile> = vec![&tiles[0]; num_elements];
 
-    for i in 0..=5 {
-        // let this_tile = tiles.
+    for i in 0..num_elements {
+        set_tile(i, &mut output, &tiles);
     }
 
-    for tile in output {
-        println!("{tile}");
+    for (i, tile) in output.iter().enumerate() {
+        print!("{tile}");
+        if (i + 1) % SIDE_LENGTH == 0 { print!("\n") }
     }
 
 }
