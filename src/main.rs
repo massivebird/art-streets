@@ -79,7 +79,7 @@ fn get_index_on_side(side: usize, index: usize) -> Option<usize> {
         // get index above
         0 => if index < SIDE_LENGTH { None } else { Some(index - SIDE_LENGTH) },
         // get index leftward
-        3 => if index % SIDE_LENGTH == 0 { None } else { Some(index - SIDE_LENGTH) },
+        3 => if index % SIDE_LENGTH == 0 { None } else { Some(index - 1) },
         _ => panic!("Trippin"),
     }
 }
