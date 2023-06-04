@@ -132,17 +132,17 @@ fn set_tile<'a>(index: usize, output: &mut Vec<&'a Tile>, tiles: &'a Vec<Tile>) 
 fn main() {
     let tiles: Vec<Tile> = vec![
         Tile::new(' ', false, false, false, false),
-        Tile::new('╭', false, true, true, false),
-        Tile::new('╮', false, false, true, true),
-        Tile::new('╰', true, true, false, false),
-        Tile::new('╯', true, false, false, true),
-        Tile::new('─', false, true, false, true),
-        Tile::new('│', true, false, true, false),
-        // Tile::new('├', true, true, true, false),
-        // Tile::new('┤', true, false, true, true),
-        // Tile::new('┬', false, true, true, true),
-        // Tile::new('┴', true, true, false, true),
-        Tile::new('┼', true, true, true, true),
+        Tile::new('┏', false, true, true, false),
+        Tile::new('┓', false, false, true, true),
+        Tile::new('┗', true, true, false, false),
+        Tile::new('┛', true, false, false, true),
+        Tile::new('━', false, true, false, true),
+        Tile::new('┃', true, false, true, false),
+        Tile::new('┣', true, true, true, false),
+        Tile::new('┫', true, false, true, true),
+        Tile::new('┳', false, true, true, true),
+        Tile::new('┻', true, true, false, true),
+        Tile::new('╋', true, true, true, true),
     ];
 
     let num_elements = HEIGHT * WIDTH;
