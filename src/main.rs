@@ -51,10 +51,10 @@ impl Tile {
         Tile {
             char,
             constraints: Constraint {
-                up: MustBe(up),
+                up:    MustBe(up),
                 right: MustBe(right),
-                down: MustBe(down),
-                left: MustBe(left)
+                down:  MustBe(down),
+                left:  MustBe(left)
             }
         }
     }
@@ -100,7 +100,12 @@ fn set_tile<'a>(index: usize, output: &mut Vec<&'a Tile>, tiles: &'a Vec<Tile>) 
         output[get_index_on_side(side, index)]
     };
 
-    let mut requirements = Constraint { up: Any, right: Any, down: Any, left: Any};
+    let mut requirements = Constraint {
+        up:    Any,
+        right: Any,
+        down:  Any,
+        left:  Any
+    };
 
     // up
     if side_is_inside(0) {
