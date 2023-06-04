@@ -1,22 +1,41 @@
 use rand::{Rng, thread_rng};
 
-const SIDE_LENGTH: usize = 3;
+const SIDE_LENGTH: usize = 10;
+
+#[derive(Copy, Clone, Debug)]
+enum Requirement {
+    MustBe(bool),
+    Any,
+}
+
+impl Requirement {
+    fn equals(&self, other: &Requirement) -> bool {
+        use Requirement::{Any, MustBe};
+        match self {
+            Any => true,
+            MustBe(x) => match other {
+                MustBe(y) => x == y,
+                Any => true,
+            }
+        }
+    }
+}
 
 // "do lines continue in [direction]?"
 #[derive(Copy, Clone, Debug)]
 struct Constraint {
-    up: bool,
-    right: bool,
-    down: bool,
-    left: bool,
+    up: Requirement,
+    right: Requirement,
+    down: Requirement,
+    left: Requirement,
 }
 
 impl Constraint {
     fn equals(&self, other: &Constraint) -> bool {
-        self.up == other.up
-        && self.right == other.right
-        && self.down == other.down
-        && self.left == other.left
+        self.up.equals(&other.up)
+        && self.right.equals(&other.right)
+        && self.down.equals(&other.down)
+        && self.left.equals(&other.left)
     }
 }
 
@@ -28,19 +47,20 @@ struct Tile {
 
 impl Tile {
     fn new(char: char, up: bool, right: bool, down: bool, left: bool) -> Tile {
-        Tile { char, constraints: Constraint { up, right, down, left } }
+        use Requirement::MustBe;
+        Tile { char, constraints: Constraint { up: MustBe(up), right: MustBe(right), down: MustBe(down), left: MustBe(left) } }
     }
 
     fn fits_on_tile_on_side(&self, other: &Tile, side: usize) -> bool {
         match side {
             // fits above
-            0 => self.constraints.down == other.constraints.up,
+            0 => self.constraints.down.equals(&other.constraints.up),
             // fits rightward
-            1 => self.constraints.left == other.constraints.right,
+            1 => self.constraints.left.equals(&other.constraints.right),
             // fits below
-            2 => self.constraints.up == other.constraints.down,
+            2 => self.constraints.up.equals(&other.constraints.down),
             // fits leftward
-            3 => self.constraints.right == other.constraints.left,
+            3 => self.constraints.right.equals(&other.constraints.left),
             _ => panic!("Bad side"),
         }
     }
@@ -89,7 +109,7 @@ fn is_space_on_side_of_index_inside(side: usize, index: usize) -> bool {
         // get index above
         0 => if index < SIDE_LENGTH { false } else { true },
         // get index rightward
-        1 => if index - 1 % SIDE_LENGTH == 0 { false } else { true },
+        1 => if index == 0 || index - 1 % SIDE_LENGTH != 0 { true } else { false },
         // get index downward
         2 => if index >= SIDE_LENGTH * (SIDE_LENGTH - 1) { false } else { true },
         // get index leftward
@@ -98,28 +118,61 @@ fn is_space_on_side_of_index_inside(side: usize, index: usize) -> bool {
     }
 }
 
-fn get_random_tile(tiles: &Vec<Tile>) -> &Tile {
-    let mut rng = thread_rng();
-    let possibilities: &Vec<&Tile> = &tiles.iter().filter(|t| !t.constraints.left && !t.constraints.up).collect();
-    *possibilities.get(rng.gen_range(0..possibilities.len())).unwrap()
-}
+// fn get_random_tile(tiles: &Vec<Tile>) -> &Tile {
+//     let mut rng = thread_rng();
+//     let possibilities: &Vec<&Tile> = &tiles.iter().filter(|t| !t.constraints.left && !t.constraints.up).collect();
+//     *possibilities.get(rng.gen_range(0..possibilities.len())).unwrap()
+// }
 
 fn set_tile<'a>(index: usize, output: &mut Vec<&'a Tile>, tiles: &'a Vec<Tile>) {
+    use Requirement::{Any, MustBe};
     // generate possibilities according to neighboring tiles,
     // no neighbor => use function to determine space type
     // then push the tile
-    let now_index = output.len();
+
     let side_is_inside = |side: usize| -> bool {
-        is_space_on_side_of_index_inside(side, now_index)
+        is_space_on_side_of_index_inside(side, index)
     };
-    let possibilities: Vec<&Tile> = Vec::new();
-    let possibilities: &Vec<&Tile> = &tiles.iter().filter(|t|
-        ((!side_is_inside(0) && t.constraints.up == false) || side_is_inside(0) && t.constraints.up == output[get_index_on_side(0, now_index).unwrap()].constraints.down)
-        // && (side_is_inside(1) || t.constraints.right == false)
-        // && (side_is_inside(2) || t.constraints.down == false)
-        && ((!side_is_inside(3) && t.constraints.left == false) || side_is_inside(3) && t.constraints.left == output[get_index_on_side(3, now_index).unwrap()].constraints.right) 
-    )
+    let side_is_outside = |side: usize| !side_is_inside(side);
+
+    // let tiles = tiles.iter();
+    let mut reqs = Constraint { up: Any, right: Any, down: Any, left: Any};
+
+    dbg!(index);
+
+    // up
+    if side_is_outside(0) {
+        reqs.up = MustBe(false);
+    } else {
+        reqs.up = output[get_index_on_side(0, index).unwrap()].constraints.down;
+    }
+
+    // right
+    if side_is_outside(1) {
+        reqs.right = MustBe(false);
+    }
+
+    // down
+    if side_is_outside(2) {
+        reqs.down = MustBe(false);
+    }
+
+    // left
+    if side_is_outside(3) {
+        reqs.left = MustBe(false);
+    } else {
+        reqs.left = output[get_index_on_side(3, index).unwrap()].constraints.right;
+    }
+
+    dbg!(reqs);
+
+    let possibilities: &Vec<&Tile> = &tiles
+        .iter()
+        .filter(|t| t.constraints.equals(&reqs))
         .collect();
+
+    // dbg!(possibilities);
+
     let mut rng = thread_rng();
     let tile_ref = *possibilities.get(rng.gen_range(0..possibilities.len())).unwrap();
     *output.get_mut(index).unwrap() = tile_ref;
