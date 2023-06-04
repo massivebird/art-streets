@@ -1,7 +1,8 @@
 use rand::{Rng, thread_rng};
 use Requirement::{MustBe, Any};
 
-const SIDE_LENGTH: usize = 10;
+const HEIGHT: usize = 4;
+const WIDTH:  usize = 8;
 
 #[derive(Copy, Clone, Debug)]
 enum Requirement {
@@ -66,34 +67,12 @@ impl std::fmt::Display for Tile {
     }
 }
 
-struct Grid {
-    tiles: [Option<Tile>; SIDE_LENGTH * SIDE_LENGTH]
-}
-
-impl Grid {
-    fn new() -> Grid {
-        Grid {
-            tiles: [None; SIDE_LENGTH * SIDE_LENGTH],
-        }
-    }
-
-    fn print(&self) {
-        for i in 0..self.tiles.len() {
-            match self.tiles[i] {
-                Some(tile) => print!("{}", tile),
-                None => print!("?"),
-            }
-            if (i + 1) % SIDE_LENGTH == 0 { print!("\n") };
-        }
-    }
-}
-
-fn get_index_on_side(side: usize, index: usize) -> Option<usize> {
+fn get_index_on_side(side: usize, index: usize) -> usize {
     match side {
         // get index above
-        0 => if index < SIDE_LENGTH { None } else { Some(index - SIDE_LENGTH) },
+        0 => index - WIDTH,
         // get index leftward
-        3 => if index % SIDE_LENGTH == 0 { None } else { Some(index - 1) },
+        3 => index - 1,
         _ => panic!("Trippin"),
     }
 }
@@ -101,13 +80,13 @@ fn get_index_on_side(side: usize, index: usize) -> Option<usize> {
 fn is_side_of_index_inside(side: usize, index: usize) -> bool {
     match side {
         // get index above
-        0 => if index < SIDE_LENGTH { false } else { true },
+        0 => if index < WIDTH { false } else { true },
         // get index rightward
-        1 => if index != 0 && (index - 1) % SIDE_LENGTH == 0 { false } else { true },
+        1 => if index != 0 && (index - 1) % WIDTH == 0 { false } else { true },
         // get index downward
-        2 => if index >= SIDE_LENGTH * (SIDE_LENGTH - 1) { false } else { true },
+        2 => if index >= WIDTH * (WIDTH - 1) { false } else { true },
         // get index leftward
-        3 => if index % SIDE_LENGTH == 0 { false } else { true },
+        3 => if index % WIDTH == 0 { false } else { true },
         _ => panic!("Trippin"),
     }
 }
@@ -115,15 +94,13 @@ fn is_side_of_index_inside(side: usize, index: usize) -> bool {
 fn set_tile<'a>(index: usize, output: &mut Vec<&'a Tile>, tiles: &'a Vec<Tile>) {
     let side_is_inside = |side: usize| -> bool {
         is_side_of_index_inside(side, index)
-    };
 
+    };
     let get_tile_to_the_side = |side: usize| -> &Tile {
-        output[get_index_on_side(side, index).unwrap()]
+        output[get_index_on_side(side, index)]
     };
 
     let mut requirements = Constraint { up: Any, right: Any, down: Any, left: Any};
-
-    dbg!(index);
 
     // up
     if side_is_inside(0) {
@@ -134,8 +111,6 @@ fn set_tile<'a>(index: usize, output: &mut Vec<&'a Tile>, tiles: &'a Vec<Tile>) 
     if side_is_inside(3) {
         requirements.left = get_tile_to_the_side(3).constraints.right;
     }
-
-    dbg!(requirements);
 
     let possibilities: &Vec<&Tile> = &tiles
         .iter()
@@ -158,14 +133,14 @@ fn main() {
         Tile::new('╯', true, false, false, true),
         Tile::new('─', false, true, false, true),
         Tile::new('│', true, false, true, false),
-        Tile::new('├', true, true, true, false),
-        Tile::new('┤', true, false, true, true),
-        Tile::new('┬', false, true, true, true),
+        // Tile::new('├', true, true, true, false),
+        // Tile::new('┤', true, false, true, true),
+        // Tile::new('┬', false, true, true, true),
+        // Tile::new('┴', true, true, false, true),
         Tile::new('┼', true, true, true, true),
-        Tile::new('┴', true, true, false, true),
     ];
 
-    let num_elements = SIDE_LENGTH * SIDE_LENGTH;
+    let num_elements = HEIGHT * WIDTH;
 
     let mut output: Vec<&Tile> = vec![&tiles[0]; num_elements];
 
@@ -175,6 +150,6 @@ fn main() {
 
     for (i, tile) in output.iter().enumerate() {
         print!("{tile}");
-        if (i + 1) % SIDE_LENGTH == 0 { print!("\n") }
+        if (i + 1) % WIDTH == 0 { print!("\n") }
     }
 }
