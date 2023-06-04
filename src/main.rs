@@ -84,7 +84,7 @@ fn get_index_on_side(side: usize, index: usize) -> Option<usize> {
     }
 }
 
-fn space_on_side_of_index_is_inside(side: usize, index: usize) -> bool {
+fn is_space_on_side_of_index_inside(side: usize, index: usize) -> bool {
     match side {
         // get index above
         0 => if index < SIDE_LENGTH { false } else { true },
@@ -110,12 +110,9 @@ fn set_tile<'a>(index: usize, output: &mut Vec<&'a Tile>, tiles: &'a Vec<Tile>) 
     // then push the tile
     let now_index = output.len();
     let side_is_inside = |side: usize| -> bool {
-        space_on_side_of_index_is_inside(side, now_index)
+        is_space_on_side_of_index_inside(side, now_index)
     };
-    let is_set = |side: usize| -> bool {
-        space_on_side_of_index_is_inside(side, now_index)
-        && output.get(get_index_on_side(side, now_index).unwrap()).unwrap().char != ' '
-    };
+    let possibilities: Vec<&Tile> = Vec::new();
     let possibilities: &Vec<&Tile> = &tiles.iter().filter(|t|
         ((!side_is_inside(0) && t.constraints.up == false) || side_is_inside(0) && t.constraints.up == output[get_index_on_side(0, now_index).unwrap()].constraints.down)
         // && (side_is_inside(1) || t.constraints.right == false)
