@@ -15,8 +15,8 @@ impl Requirement {
         match self {
             Any => true,
             MustBe(x) => match other {
-                MustBe(y) => x == y,
                 Any => true,
+                MustBe(y) => x == y,
             }
         }
     }
@@ -43,7 +43,7 @@ impl Constraint {
 #[derive(Copy, Clone, Debug)]
 struct Tile {
     char: char,
-    constraints: Constraint
+    constraints: Constraint,
 }
 
 impl Tile {
@@ -54,7 +54,7 @@ impl Tile {
                 up:    MustBe(up),
                 right: MustBe(right),
                 down:  MustBe(down),
-                left:  MustBe(left)
+                left:  MustBe(left),
             }
         }
     }
@@ -72,7 +72,7 @@ fn set_tile<'a>(index: usize, output: &mut [&'a Tile], tiles: &'a [Tile]) {
         up:    Any,
         right: Any,
         down:  Any,
-        left:  Any
+        left:  Any,
     };
 
     // is there is a valid index above the current one?
