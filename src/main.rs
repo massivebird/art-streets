@@ -67,39 +67,7 @@ impl std::fmt::Display for Tile {
     }
 }
 
-fn get_index_on_side(side: usize, index: usize) -> usize {
-    match side {
-        // get index above
-        0 => index - WIDTH,
-        // get index leftward
-        3 => index - 1,
-        _ => panic!("Trippin"),
-    }
-}
-
-fn is_side_of_index_inside(side: usize, index: usize) -> bool {
-    match side {
-        // get index above
-        0 => index >= WIDTH,
-        // get index rightward
-        1 => !(index != 0 && (index - 1) % WIDTH == 0),
-        // get index downward
-        2 => index < WIDTH * (WIDTH - 1),
-        // get index leftward
-        3 => index % WIDTH != 0,
-        _ => panic!("Trippin"),
-    }
-}
-
 fn set_tile<'a>(index: usize, output: &mut [&'a Tile], tiles: &'a [Tile]) {
-    let side_is_inside = |side: usize| -> bool {
-        is_side_of_index_inside(side, index)
-
-    };
-    let get_tile_to_the_side = |side: usize| -> &Tile {
-        output[get_index_on_side(side, index)]
-    };
-
     let mut requirements = Constraint {
         up:    Any,
         right: Any,
@@ -107,14 +75,16 @@ fn set_tile<'a>(index: usize, output: &mut [&'a Tile], tiles: &'a [Tile]) {
         left:  Any
     };
 
-    // up
-    if side_is_inside(0) {
-        requirements.up = get_tile_to_the_side(0).constraints.down;
+    // is there is a valid index above the current one?
+    // same as "is this index NOT in the topmost row?"
+    if index >= WIDTH {
+        requirements.up = output[index - WIDTH].constraints.down;
     }
 
-    // left
-    if side_is_inside(3) {
-        requirements.left = get_tile_to_the_side(3).constraints.right;
+    // is there is a valid index to the left of the current one?
+    // same as "is this index NOT in the leftmost column?"
+    if index % WIDTH != 0 {
+        requirements.left = output[index - 1].constraints.right;
     }
 
     let possibilities: &Vec<&Tile> = &tiles
