@@ -80,18 +80,18 @@ fn get_index_on_side(side: usize, index: usize) -> usize {
 fn is_side_of_index_inside(side: usize, index: usize) -> bool {
     match side {
         // get index above
-        0 => if index < WIDTH { false } else { true },
+        0 => index >= WIDTH,
         // get index rightward
-        1 => if index != 0 && (index - 1) % WIDTH == 0 { false } else { true },
+        1 => !(index != 0 && (index - 1) % WIDTH == 0),
         // get index downward
-        2 => if index >= WIDTH * (WIDTH - 1) { false } else { true },
+        2 => index < WIDTH * (WIDTH - 1),
         // get index leftward
-        3 => if index % WIDTH == 0 { false } else { true },
+        3 => index % WIDTH != 0,
         _ => panic!("Trippin"),
     }
 }
 
-fn set_tile<'a>(index: usize, output: &mut Vec<&'a Tile>, tiles: &'a Vec<Tile>) {
+fn set_tile<'a>(index: usize, output: &mut [&'a Tile], tiles: &'a [Tile]) {
     let side_is_inside = |side: usize| -> bool {
         is_side_of_index_inside(side, index)
 
@@ -123,7 +123,7 @@ fn set_tile<'a>(index: usize, output: &mut Vec<&'a Tile>, tiles: &'a Vec<Tile>) 
         .collect();
 
     let mut rng = thread_rng();
-    let tile_ref: &Tile = *possibilities
+    let tile_ref: &Tile = possibilities
         .get(rng.gen_range(0..possibilities.len()))
         .unwrap();
     *output.get_mut(index).unwrap() = tile_ref;
@@ -155,6 +155,6 @@ fn main() {
 
     for (i, tile) in output.iter().enumerate() {
         print!("{tile}");
-        if (i + 1) % WIDTH == 0 { print!("\n") }
+        if (i + 1) % WIDTH == 0 { println!() }
     }
 }
