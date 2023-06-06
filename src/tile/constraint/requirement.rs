@@ -13,7 +13,7 @@ impl Requirement {
             MustBe(x) => match other {
                 Any => true,
                 MustBe(y) => x == y,
-            }
+            },
         }
     }
 }

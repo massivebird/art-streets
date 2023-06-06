@@ -1,4 +1,4 @@
-use crate::tile::constraint::{Constraint, requirement::Requirement::MustBe};
+use crate::tile::constraint::{requirement::Requirement::MustBe, Constraint};
 
 pub mod constraint;
 
@@ -13,14 +13,13 @@ impl Tile {
         Tile {
             char,
             constraints: Constraint {
-                up:    MustBe(up),
+                up: MustBe(up),
                 right: MustBe(right),
-                down:  MustBe(down),
-                left:  MustBe(left),
-            }
+                down: MustBe(down),
+                left: MustBe(left),
+            },
         }
     }
-
 }
 
 impl std::fmt::Display for Tile {

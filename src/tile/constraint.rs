@@ -13,8 +13,8 @@ pub struct Constraint {
 impl Constraint {
     pub fn equals(&self, other: &Constraint) -> bool {
         self.up.equals(&other.up)
-        && self.right.equals(&other.right)
-        && self.down.equals(&other.down)
-        && self.left.equals(&other.left)
+            && self.right.equals(&other.right)
+            && self.down.equals(&other.down)
+            && self.left.equals(&other.left)
     }
 }
