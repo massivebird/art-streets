@@ -1,70 +1,9 @@
 use rand::{Rng, thread_rng};
-use Requirement::{MustBe, Any};
+use crate::tile::{Tile, constraint::{Constraint, requirement::Requirement::Any}};
+
+pub mod tile;
 
 const WIDTH:  usize = 8;
-
-#[derive(Copy, Clone, Debug)]
-enum Requirement {
-    MustBe(bool),
-    Any,
-}
-
-impl Requirement {
-    fn equals(&self, other: &Requirement) -> bool {
-        match self {
-            Any => true,
-            MustBe(x) => match other {
-                Any => true,
-                MustBe(y) => x == y,
-            }
-        }
-    }
-}
-
-// "do lines continue in [direction]?"
-#[derive(Copy, Clone, Debug)]
-struct Constraint {
-    up: Requirement,
-    right: Requirement,
-    down: Requirement,
-    left: Requirement,
-}
-
-impl Constraint {
-    fn equals(&self, other: &Constraint) -> bool {
-        self.up.equals(&other.up)
-        && self.right.equals(&other.right)
-        && self.down.equals(&other.down)
-        && self.left.equals(&other.left)
-    }
-}
-
-#[derive(Copy, Clone, Debug)]
-pub struct Tile {
-    char: char,
-    constraints: Constraint,
-}
-
-impl Tile {
-    fn new(char: char, up: bool, right: bool, down: bool, left: bool) -> Tile {
-        Tile {
-            char,
-            constraints: Constraint {
-                up:    MustBe(up),
-                right: MustBe(right),
-                down:  MustBe(down),
-                left:  MustBe(left),
-            }
-        }
-    }
-
-}
-
-impl std::fmt::Display for Tile {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.char)
-    }
-}
 
 pub fn set_tile<'a>(index: usize, output: &mut [&'a Tile], tiles: &'a [Tile]) {
     let mut requirements = Constraint {

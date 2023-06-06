@@ -1,4 +1,4 @@
-use art_boxes::{Tile, generate_tiles, display_output, set_tile};
+use art_boxes::{tile::Tile, generate_tiles, set_tile, display_output};
 
 const HEIGHT: usize = 4;
 const WIDTH:  usize = 8;
