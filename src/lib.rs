@@ -3,9 +3,45 @@ use crate::tile::{Tile, constraint::{Constraint, requirement::Requirement::Any}}
 
 pub mod tile;
 
-const WIDTH:  usize = 8;
+pub struct Config {
+    pub width: usize,
+    pub height: usize,
+}
 
-pub fn set_tile<'a>(index: usize, output: &mut [&'a Tile], tiles: &'a [Tile]) {
+impl Config {
+    pub fn build(
+        mut args: impl Iterator<Item = String>
+    ) -> Result<Config, &'static str> {
+        args.next(); // eat program name argument
+
+        let width = match args.next() {
+            None => return Err("Could not find width, height arguments"),
+            Some(x) => match x.parse() {
+                Ok(num) => num,
+                Err(_) => return Err("Could not parse width"),
+            },
+        };
+
+        let height = match args.next() {
+            None => return Err("Could not find width, height arguments"),
+            Some(x) => match x.parse() {
+                Ok(num) => num,
+                Err(_) => return Err("Could not parse height"),
+            },
+        };
+
+        Ok(Config { width, height })
+    }
+}
+
+pub fn set_tile<'a>(
+    index: usize,
+    output: &mut [&'a Tile],
+    tiles: &'a [Tile],
+    config: &Config
+) {
+    let width = config.width;
+
     let mut requirements = Constraint {
         up:    Any,
         right: Any,
@@ -15,13 +51,13 @@ pub fn set_tile<'a>(index: usize, output: &mut [&'a Tile], tiles: &'a [Tile]) {
 
     // is there is a valid index above the current one?
     // same as "is this index NOT in the topmost row?"
-    if index >= WIDTH {
-        requirements.up = output[index - WIDTH].constraints.down;
+    if index >= width {
+        requirements.up = output[index - width].constraints.down;
     }
 
     // is there is a valid index to the left of the current one?
     // same as "is this index NOT in the leftmost column?"
-    if index % WIDTH != 0 {
+    if index % width != 0 {
         requirements.left = output[index - 1].constraints.right;
     }
 
@@ -37,10 +73,10 @@ pub fn set_tile<'a>(index: usize, output: &mut [&'a Tile], tiles: &'a [Tile]) {
     *output.get_mut(index).unwrap() = tile_ref;
 }
 
-pub fn display_output(output: Vec<&Tile>) {
+pub fn display_output(output: Vec<&Tile>, config: Config) {
     for (i, tile) in output.iter().enumerate() {
         print!("{tile}");
-        if (i + 1) % WIDTH == 0 { println!() }
+        if (i + 1) % config.width == 0 { println!() }
     }
 }
 
