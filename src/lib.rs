@@ -1,7 +1,10 @@
-use rand::{Rng, thread_rng};
-use crate::tile::{Tile, constraint::{Constraint, requirement::Requirement::Any}};
+use crate::tile::{
+    constraint::{requirement::Requirement::Any, Constraint},
+    Tile,
+};
+use rand::{thread_rng, Rng};
 
-pub mod tile;
+mod tile;
 
 pub struct Config {
     pub width: usize,
@@ -9,9 +12,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn build(
-        mut args: impl Iterator<Item = String>
-    ) -> Result<Config, &'static str> {
+    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
         args.next(); // eat program name argument
 
         let width = match args.next() {
@@ -34,19 +35,14 @@ impl Config {
     }
 }
 
-pub fn set_tile<'a>(
-    index: usize,
-    output: &mut [&'a Tile],
-    tiles: &'a [Tile],
-    config: &Config
-) {
+fn set_tile<'a>(index: usize, output: &mut [&'a Tile], tiles: &'a [Tile], config: &Config) {
     let width = config.width;
 
     let mut requirements = Constraint {
-        up:    Any,
+        up: Any,
         right: Any,
-        down:  Any,
-        left:  Any,
+        down: Any,
+        left: Any,
     };
 
     // is there is a valid index above the current one?
@@ -73,10 +69,12 @@ pub fn set_tile<'a>(
     *output.get_mut(index).unwrap() = tile_ref;
 }
 
-pub fn display_output(output: Vec<&Tile>, config: Config) {
+fn display_output(output: Vec<&Tile>, config: Config) {
     for (i, tile) in output.iter().enumerate() {
         print!("{tile}");
-        if (i + 1) % config.width == 0 { println!() }
+        if (i + 1) % config.width == 0 {
+            println!()
+        }
     }
 }
 
@@ -95,4 +93,16 @@ pub fn generate_tiles() -> Vec<Tile> {
         Tile::new('┻', true, true, false, true),
         Tile::new('╋', true, true, true, true),
     ]
+}
+
+pub fn run(config: Config) {
+    let tiles: Vec<Tile> = generate_tiles();
+    let num_elements = config.width * config.height;
+    let mut output: Vec<&Tile> = vec![&tiles[0]; num_elements];
+
+    for i in 0..num_elements {
+        set_tile(i, &mut output, &tiles, &config);
+    }
+
+    display_output(output, config);
 }
