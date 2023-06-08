@@ -1,6 +1,6 @@
 pub use crate::tile::{
     constraint::Constraint,
-    requirement::Requirement::{MustBe, Any}
+    requirement::Requirement::{Any, MustBe},
 };
 
 pub mod constraint;
