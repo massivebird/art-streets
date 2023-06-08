@@ -1,6 +1,10 @@
-use crate::tile::constraint::{requirement::Requirement::MustBe, Constraint};
+pub use crate::tile::{
+    constraint::Constraint,
+    requirement::Requirement::{MustBe, Any}
+};
 
 pub mod constraint;
+pub mod requirement;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Tile {

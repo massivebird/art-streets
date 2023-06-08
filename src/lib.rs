@@ -1,7 +1,4 @@
-use crate::tile::{
-    constraint::{requirement::Requirement::Any, Constraint},
-    Tile,
-};
+use crate::tile::{Tile, Constraint, Any};
 use rand::{thread_rng, Rng};
 
 mod tile;

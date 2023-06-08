@@ -1,6 +1,4 @@
-use crate::tile::constraint::requirement::Requirement;
-
-pub mod requirement;
+use crate::tile::requirement::Requirement;
 
 #[derive(Copy, Clone, Debug)]
 pub struct Constraint {
