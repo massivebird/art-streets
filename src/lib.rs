@@ -16,7 +16,7 @@ impl Config {
             None => return Err("Could not find width, height arguments"),
             Some(x) => match x.parse() {
                 Ok(num) => num,
-                Err(_) => return Err("Could not parse width"),
+                Err(_) => return Err("provided width is not a valid unsigned integer"),
             },
         };
 
@@ -24,7 +24,7 @@ impl Config {
             None => return Err("Could not find width, height arguments"),
             Some(x) => match x.parse() {
                 Ok(num) => num,
-                Err(_) => return Err("Could not parse height"),
+                Err(_) => return Err("provided height is not a valid unsigned integer"),
             },
         };
 
@@ -32,9 +32,7 @@ impl Config {
     }
 }
 
-fn set_tile<'a>(index: usize, output: &mut [&'a Tile], tiles: &'a [Tile], config: &Config) {
-    let width = config.width;
-
+fn set_tile<'a>(row: usize, column: usize, output: &mut Vec<Vec<&'a Tile>>, tiles: &'a [Tile]) {
     let mut requirements = Constraint {
         up: Any,
         right: Any,
@@ -44,14 +42,14 @@ fn set_tile<'a>(index: usize, output: &mut [&'a Tile], tiles: &'a [Tile], config
 
     // is there is a valid index above the current one?
     // same as "is this index NOT in the topmost row?"
-    if index >= width {
-        requirements.up = output[index - width].constraints.down;
+    if row != 0 {
+        requirements.up = output[row - 1][column].constraints.down;
     }
 
     // is there is a valid index to the left of the current one?
     // same as "is this index NOT in the leftmost column?"
-    if index % width != 0 {
-        requirements.left = output[index - 1].constraints.right;
+    if column > 0  {
+        requirements.left = output[row][column - 1].constraints.right;
     }
 
     let possibilities: &Vec<&Tile> = &tiles
@@ -60,18 +58,18 @@ fn set_tile<'a>(index: usize, output: &mut [&'a Tile], tiles: &'a [Tile], config
         .collect();
 
     let mut rng = thread_rng();
-    let tile_ref: &Tile = possibilities
+    let random_tile: &Tile = possibilities
         .get(rng.gen_range(0..possibilities.len()))
         .unwrap();
-    *output.get_mut(index).unwrap() = tile_ref;
+    *output.get_mut(row).unwrap().get_mut(column).unwrap() = random_tile;
 }
 
-fn display_output(output: Vec<&Tile>, config: Config) {
-    for (i, tile) in output.iter().enumerate() {
-        print!("{tile}");
-        if (i + 1) % config.width == 0 {
-            println!()
+fn display_output(output: Vec<Vec<&Tile>>, config: Config) {
+    for row in 0..config.height {
+        for column in 0..config.width {
+            print!("{}", output[row][column])
         }
+        println!("");
     }
 }
 
@@ -94,11 +92,13 @@ pub fn generate_tiles() -> Vec<Tile> {
 
 pub fn run(config: Config) {
     let tiles: Vec<Tile> = generate_tiles();
-    let num_elements = config.width * config.height;
-    let mut output: Vec<&Tile> = vec![&tiles[0]; num_elements];
+    let (width, height) = (config.width, config.height);
+    let mut output: Vec<Vec<&Tile>> = vec![vec![&tiles[0]; width]; height];
 
-    for i in 0..num_elements {
-        set_tile(i, &mut output, &tiles, &config);
+    for row in 0..height {
+        for column in 0..width {
+            set_tile(row, column, &mut output, &tiles);
+        }
     }
 
     display_output(output, config);
