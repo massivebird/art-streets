@@ -4,7 +4,7 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
+    pub fn build(mut args: impl Iterator<Item = String>) -> Result<Self, &'static str> {
         args.next(); // eat program name argument
 
         let width = match args.next() {
@@ -23,6 +23,6 @@ impl Config {
             },
         };
 
-        Ok(Config { width, height })
+        Ok(Self { width, height })
     }
 }

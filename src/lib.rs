@@ -1,6 +1,6 @@
-use crate::{
+use self::{
     config::Config,
-    tile::{Any, Constraint, Tile},
+    tile::{Any, Constraint, Tile, generate_tiles},
 };
 use rand::{thread_rng, Rng};
 
@@ -8,7 +8,12 @@ mod tile;
 
 pub mod config;
 
-fn set_tile<'a>(row: usize, column: usize, output: &mut Vec<Vec<&'a Tile>>, tiles: &'a [Tile]) {
+fn set_tile<'a>(
+    row: usize,
+    column: usize,
+    output: &mut Vec<Vec<&'a Tile>>,
+    tiles: &'a [Tile]
+) {
     let mut requirements = Constraint {
         up: Any,
         right: Any,
@@ -16,54 +21,44 @@ fn set_tile<'a>(row: usize, column: usize, output: &mut Vec<Vec<&'a Tile>>, tile
         left: Any,
     };
 
-    // is there is a valid index above the current one?
-    // same as "is this index NOT in the topmost row?"
+    // all logic is driven by this principle:
+    // we create tiles from top to bottom, left to right!
+
+    // if this is not the topmost row,
+    // then set upwards requirements according to tile above
     if row != 0 {
         requirements.up = output[row - 1][column].constraints.down;
     }
 
-    // is there is a valid index to the left of the current one?
-    // same as "is this index NOT in the leftmost column?"
+    // if this is not the leftmost column,
+    // then set leftwards requirements according to tile leftwards
     if column > 0  {
         requirements.left = output[row][column - 1].constraints.right;
     }
 
-    let possibilities: &Vec<&Tile> = &tiles
+    let possible_tiles: &Vec<&Tile> = &tiles
         .iter()
-        .filter(|t| t.constraints.equals(&requirements))
+        .filter(|t| t.constraints.equals(requirements))
         .collect();
 
     let mut rng = thread_rng();
-    let random_tile: &Tile = possibilities
-        .get(rng.gen_range(0..possibilities.len()))
-        .unwrap();
-    *output.get_mut(row).unwrap().get_mut(column).unwrap() = random_tile;
+
+    unsafe {
+        let chosen_tile: &Tile =
+        possible_tiles
+            .get_unchecked(rng.gen_range(0..possible_tiles.len()));
+        *output.get_unchecked_mut(row)
+            .get_unchecked_mut(column) = chosen_tile;
+    }   
 }
 
-fn display_output(output: Vec<Vec<&Tile>>, config: Config) {
-    for row in 0..config.height {
+fn display_output(output: &[Vec<&Tile>], config: &Config) {
+    for row in output.iter().take(config.height) {
         for column in 0..config.width {
-            print!("{}", output[row][column])
+            print!("{}", row[column]);
         }
-        println!("");
+        println!();
     }
-}
-
-pub fn generate_tiles() -> Vec<Tile> {
-    vec![
-        Tile::new(' ', false, false, false, false),
-        Tile::new('┏', false, true, true, false),
-        Tile::new('┓', false, false, true, true),
-        Tile::new('┗', true, true, false, false),
-        Tile::new('┛', true, false, false, true),
-        Tile::new('━', false, true, false, true),
-        Tile::new('┃', true, false, true, false),
-        Tile::new('┣', true, true, true, false),
-        Tile::new('┫', true, false, true, true),
-        Tile::new('┳', false, true, true, true),
-        Tile::new('┻', true, true, false, true),
-        Tile::new('╋', true, true, true, true),
-    ]
 }
 
 pub fn run(config: Config) {
@@ -77,5 +72,5 @@ pub fn run(config: Config) {
         }
     }
 
-    display_output(output, config);
+    display_output(&output, &config);
 }

@@ -7,7 +7,7 @@ pub enum Requirement {
 }
 
 impl Requirement {
-    pub fn equals(&self, other: &Requirement) -> bool {
+    pub fn equals(self, other: Self) -> bool {
         match self {
             Any => true,
             MustBe(x) => match other {
