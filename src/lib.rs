@@ -11,7 +11,7 @@ pub mod config;
 fn set_tile<'a>(
     row: usize,
     column: usize,
-    output: &mut Vec<Vec<&'a Tile>>,
+    output: &mut [Vec<&'a Tile>],
     tiles: &'a [Tile]
 ) {
     let mut requirements = Constraint {
@@ -53,15 +53,15 @@ fn set_tile<'a>(
 }
 
 fn display_output(output: &[Vec<&Tile>], config: &Config) {
-    for row in output.iter().take(config.height) {
-        for column in 0..config.width {
-            print!("{}", row[column]);
+    for row in output {
+        for tile in row.iter().take(config.width) {
+            print!("{tile}");
         }
         println!();
     }
 }
 
-pub fn run(config: Config) {
+pub fn run(config: &Config) {
     let tiles: Vec<Tile> = generate_tiles();
     let (width, height) = (config.width, config.height);
     let mut output: Vec<Vec<&Tile>> = vec![vec![&tiles[0]; width]; height];
@@ -72,5 +72,5 @@ pub fn run(config: Config) {
         }
     }
 
-    display_output(&output, &config);
+    display_output(&output, config);
 }

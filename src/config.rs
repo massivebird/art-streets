@@ -4,6 +4,9 @@ pub struct Config {
 }
 
 impl Config {
+    /// # Errors
+    /// 
+    /// Returns a detailed error message if argument parsing fails.
     pub fn build(mut args: impl Iterator<Item = String>) -> Result<Self, &'static str> {
         args.next(); // eat program name argument
 
