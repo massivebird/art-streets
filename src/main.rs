@@ -1,5 +1,4 @@
-use art_boxes::run;
-use art_boxes::Config;
+use art_boxes::{config::Config, run};
 use std::env;
 
 fn main() {
