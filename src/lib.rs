@@ -1,19 +1,10 @@
-use self::{
-    config::Config,
-    tile::{Any, Constraint, Tile, generate_tiles},
-};
+use self::tile::{generate_tiles, Any, Constraint, Tile};
 use rand::{thread_rng, Rng};
 
 mod tile;
-
 pub mod config;
 
-fn set_tile<'a>(
-    row: usize,
-    column: usize,
-    output: &mut [Vec<&'a Tile>],
-    tiles: &'a [Tile]
-) {
+fn set_tile<'a>(row: usize, column: usize, output: &mut [Vec<&'a Tile>], tiles: &'a [Tile]) {
     let mut requirements = Constraint {
         up: Any,
         right: Any,
@@ -32,7 +23,7 @@ fn set_tile<'a>(
 
     // if this is not the leftmost column,
     // then set leftwards requirements according to tile leftwards
-    if column > 0  {
+    if column > 0 {
         requirements.left = output[row][column - 1].constraints.right;
     }
 
@@ -45,25 +36,15 @@ fn set_tile<'a>(
 
     unsafe {
         let chosen_tile: &Tile =
-        possible_tiles
-            .get_unchecked(rng.gen_range(0..possible_tiles.len()));
-        *output.get_unchecked_mut(row)
-            .get_unchecked_mut(column) = chosen_tile;
-    }   
-}
-
-fn display_output(output: &[Vec<&Tile>], config: &Config) {
-    for row in output {
-        for tile in row.iter().take(config.width) {
-            print!("{tile}");
-        }
-        println!();
+            possible_tiles.get_unchecked(rng.gen_range(0..possible_tiles.len()));
+        *output.get_unchecked_mut(row).get_unchecked_mut(column) = chosen_tile;
     }
 }
 
-pub fn run(config: &Config) {
+#[must_use]
+pub fn generate_art(width: usize, height: usize) -> String {
     let tiles: Vec<Tile> = generate_tiles();
-    let (width, height) = (config.width, config.height);
+    let (width, height) = (width, height);
     let mut output: Vec<Vec<&Tile>> = vec![vec![&tiles[0]; width]; height];
 
     for row in 0..height {
@@ -72,5 +53,24 @@ pub fn run(config: &Config) {
         }
     }
 
-    display_output(&output, config);
+    // Tiles have been generated.
+    // Return them in string format.
+
+    let mut s = String::new();
+
+    for (idx, row) in output.iter().enumerate() {
+        for tile in row.iter().take(width) {
+            s.push_str(&tile.to_string());
+        }
+
+        // Do not terminate with '\n'. I think delegating that to the
+        // calling code is ok.
+        if idx == output.len() - 1 {
+            break;
+        }
+
+        s.push('\n');
+    }
+
+    s
 }

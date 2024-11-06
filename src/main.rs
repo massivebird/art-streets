@@ -1,4 +1,4 @@
-use art_streets::{config::Config, run};
+use art_streets::{config::Config, generate_art};
 use std::env;
 
 fn main() {
@@ -7,5 +7,5 @@ fn main() {
         std::process::exit(1)
     });
 
-    run(&config);
+    println!("{}", generate_art(config.width, config.height));
 }
