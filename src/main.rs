@@ -1,4 +1,4 @@
-use art_boxes::{config::Config, run};
+use art_streets::{config::Config, run};
 use std::env;
 
 fn main() {

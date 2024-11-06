@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "art_boxes"
+name = "art-streets"
 version = "0.1.0"
 dependencies = [
  "rand",
