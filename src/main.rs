@@ -3,12 +3,12 @@ use self::{
     tile::{generate_tiles, Any, Constraint, Tile},
 };
 use rand::{thread_rng, Rng};
-use std::env;
+use std::{env, io::Write};
 
 mod config;
 mod tile;
 
-fn main() {
+fn main() -> std::io::Result<()> {
     let config = Config::build(env::args()).unwrap_or_else(|err| {
         eprintln!("Error parsing arguments: {err}");
         std::process::exit(1)
@@ -24,11 +24,11 @@ fn main() {
         }
     }
 
-    let mut s = String::new();
+    let mut buf: Vec<u8> = Vec::new();
 
     for (idx, row) in output.iter().enumerate() {
         for tile in row.iter().take(width) {
-            s.push_str(&tile.to_string());
+            write!(&mut buf, "{}", &tile.to_string())?;
         }
 
         // Do not terminate with '\n'. I think delegating that to the
@@ -37,10 +37,12 @@ fn main() {
             break;
         }
 
-        s.push('\n');
+        writeln!(&mut buf)?;
     }
 
-    println!("{s}");
+    print!("{}", String::from_utf8(buf).unwrap());
+
+    Ok(())
 }
 
 fn set_tile<'a>(row: usize, column: usize, output: &mut [Vec<&'a Tile>], tiles: &'a [Tile]) {
