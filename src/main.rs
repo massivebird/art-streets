@@ -1,6 +1,6 @@
 use self::{
     config::Config,
-    tile::{generate_tiles, Any, Constraint, Tile},
+    tile::{generate_tiles, Sides, Tile},
 };
 use rand::{thread_rng, Rng};
 use std::{env, io::Write};
@@ -46,12 +46,8 @@ fn main() -> std::io::Result<()> {
 }
 
 fn set_tile<'a>(row: usize, column: usize, output: &mut [Vec<&'a Tile>], tiles: &'a [Tile]) {
-    let mut requirements = Constraint {
-        up: Any,
-        right: Any,
-        down: Any,
-        left: Any,
-    };
+    let mut reqs: tile::Sides = Sides::NONE;
+    let mut illegal: tile::Sides = Sides::NONE;
 
     // all logic is driven by this principle:
     // we create tiles from top to bottom, left to right!
@@ -59,18 +55,30 @@ fn set_tile<'a>(row: usize, column: usize, output: &mut [Vec<&'a Tile>], tiles: 
     // if this is not the topmost row,
     // then set upwards requirements according to tile above
     if row != 0 {
-        requirements.up = output[row - 1][column].constraints.down;
+        let tile_above = output[row - 1][column];
+
+        if tile_above.sides.contains(Sides::DOWN) {
+            reqs = Sides::UP;
+        } else if (row, column) != (0, 0) {
+            illegal = Sides::UP;
+        }
     }
 
     // if this is not the leftmost column,
     // then set leftwards requirements according to tile leftwards
     if column > 0 {
-        requirements.left = output[row][column - 1].constraints.right;
+        let tile_leftwards = output[row][column - 1];
+
+        if tile_leftwards.sides.contains(Sides::RIGHT) {
+            reqs |= Sides::LEFT;
+        } else if (row, column) != (0, 0) {
+            illegal |= Sides::LEFT;
+        }
     }
 
-    let possible_tiles: &Vec<&Tile> = &tiles
+    let possible_tiles: Vec<&Tile> = tiles
         .iter()
-        .filter(|t| t.constraints.equals(requirements))
+        .filter(|t| t.sides.contains(reqs) && (illegal.is_empty() || !t.sides.intersects(illegal)))
         .collect();
 
     let mut rng = thread_rng();
