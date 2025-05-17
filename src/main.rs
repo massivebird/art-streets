@@ -24,9 +24,6 @@ fn main() {
         }
     }
 
-    // Tiles have been generated.
-    // Return them in string format.
-
     let mut s = String::new();
 
     for (idx, row) in output.iter().enumerate() {
