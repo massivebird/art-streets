@@ -26,11 +26,11 @@ fn main() -> std::io::Result<()> {
         }
     }
 
-    let mut buf: Vec<u8> = Vec::new();
+    let mut buf: Vec<u8> = Vec::with_capacity(output.len());
 
     for (idx, row) in output.iter().enumerate() {
         for tile in row.iter().take(width) {
-            write!(&mut buf, "{}", &tile.to_string())?;
+            write!(&mut buf, "{tile}")?;
         }
 
         // Do not terminate with '\n'. I think delegating that to the

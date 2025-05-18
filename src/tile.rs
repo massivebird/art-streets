@@ -9,7 +9,6 @@ bitflags::bitflags! {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
 pub struct Tile {
     char: char,
     pub sides: Sides,
