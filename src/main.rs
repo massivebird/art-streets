@@ -99,6 +99,7 @@ fn set_tile<'a>(
     unsafe {
         let chosen_tile: &Tile =
             possible_tiles.get_unchecked(rng.gen_range(0..possible_tiles.len()));
+
         *output.get_unchecked_mut(row).get_unchecked_mut(column) = chosen_tile;
     }
 }
