@@ -60,7 +60,10 @@ fn set_tile<'a>(
     // Candidate tiles must not contain ANY of these sides.
     let mut evil_sides: tile::Sides = Sides::NONE;
 
-    // This function is called for each location, right to left, top to bottom.
+    // This function is called for each location, left to right, top to bottom.
+    //
+    // That means we only have to consider the tiles immediately upwards and
+    // leftwards when selecting candidates.
 
     // If this is not the topmost row,
     // then refer to tile above for upwards req.
