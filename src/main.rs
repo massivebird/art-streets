@@ -2,14 +2,14 @@ use self::{
     config::Config,
     tile::{generate_tiles, Sides, Tile},
 };
-use rand::{thread_rng, Rng};
-use std::{env, io::Write};
+use rand::{rngs::ThreadRng, thread_rng, Rng};
+use std::io::Write;
 
 mod config;
 mod tile;
 
 fn main() -> std::io::Result<()> {
-    let config = Config::build(env::args()).unwrap_or_else(|err| {
+    let config = Config::build().unwrap_or_else(|err| {
         eprintln!("Error parsing arguments: {err}");
         std::process::exit(1)
     });
@@ -18,9 +18,11 @@ fn main() -> std::io::Result<()> {
     let (width, height) = (config.width, config.height);
     let mut output: Vec<Vec<&Tile>> = vec![vec![&tiles[0]; width]; height];
 
+    let mut rng = thread_rng();
+
     for row in 0..height {
         for column in 0..width {
-            set_tile(row, column, &mut output, &tiles);
+            set_tile(row, column, &mut output, &tiles, &mut rng);
         }
     }
 
@@ -45,43 +47,54 @@ fn main() -> std::io::Result<()> {
     Ok(())
 }
 
-fn set_tile<'a>(row: usize, column: usize, output: &mut [Vec<&'a Tile>], tiles: &'a [Tile]) {
+fn set_tile<'a>(
+    row: usize,
+    column: usize,
+    output: &mut [Vec<&'a Tile>],
+    tiles: &'a [Tile],
+    rng: &mut ThreadRng,
+) {
+    // Candidate tiles must at least contain ALL of these sides.
     let mut reqs: tile::Sides = Sides::NONE;
-    let mut illegal: tile::Sides = Sides::NONE;
 
-    // all logic is driven by this principle:
-    // we create tiles from top to bottom, left to right!
+    // Candidate tiles must not contain ANY of these sides.
+    let mut evil_sides: tile::Sides = Sides::NONE;
 
-    // if this is not the topmost row,
-    // then set upwards requirements according to tile above
+    // This function is called for each location, right to left, top to bottom.
+
+    // If this is not the topmost row,
+    // then refer to tile above for upwards req.
     if row != 0 {
         let tile_above = output[row - 1][column];
 
         if tile_above.sides.contains(Sides::DOWN) {
             reqs = Sides::UP;
         } else if (row, column) != (0, 0) {
-            illegal = Sides::UP;
+            evil_sides = Sides::UP;
         }
     }
 
-    // if this is not the leftmost column,
-    // then set leftwards requirements according to tile leftwards
+    // If this is not the leftmost column,
+    // then refer to tile leftwards for left-facing req.
     if column > 0 {
         let tile_leftwards = output[row][column - 1];
 
         if tile_leftwards.sides.contains(Sides::RIGHT) {
             reqs |= Sides::LEFT;
         } else if (row, column) != (0, 0) {
-            illegal |= Sides::LEFT;
+            evil_sides |= Sides::LEFT;
         }
     }
 
     let possible_tiles: Vec<&Tile> = tiles
         .iter()
-        .filter(|t| t.sides.contains(reqs) && (illegal.is_empty() || !t.sides.intersects(illegal)))
-        .collect();
+        .filter(|t| {
+            let has_all_reqs = t.sides.contains(reqs);
+            let no_evil_sides = evil_sides.is_empty() || !t.sides.intersects(evil_sides);
 
-    let mut rng = thread_rng();
+            has_all_reqs && no_evil_sides
+        })
+        .collect();
 
     unsafe {
         let chosen_tile: &Tile =
